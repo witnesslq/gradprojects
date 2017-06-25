@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../static/js/jquery-3.2.0.min.js"></script>
+    <script src="js/jquery-3.2.0.min.js"></script>
+    <script src="../static/js/mdui.js"></script>
+    <script src="js/mdui.js"></script>
+    <link rel="stylesheet" href="../static/css/material.min.css">
+    <link rel="stylesheet" href="css/material.min.css">
+    <link rel="stylesheet" href="../static/css/mdui.min.css">
+    <link rel="stylesheet" href="css/mdui.min.css">
+    <script>
+        $(document).ready(function () {
+            jQuery.fn.center = function () {
+                this.css("position","absolute");
+                this.css("top",($(window).height() - this.height())/3);
+                this.css("left",($(window).width() - this.width())/2);
+                return this;
+            };
+            $("#center").center();
+            $('cates').html("");
+            $.ajax({
+                url: '/api/getAllSysCates',
+                type: 'GET',
+                success:function (data) {
+                    display(data);
+                }
+            });
+            function display(data) {
+                let list = data.sysCateList;
+                let cates = $('.cates');
+                let str = '';
+                for(let sysCate of list) {
+                    str += `<div class="mdui-col"><label class="mdui-checkbox" id="${sysCate.id}">
+  <input name="inputcate" type="checkbox" value="${sysCate.id}"/>
+  <i class="mdui-checkbox-icon"></i>
+  ${sysCate.description}
+</label></div>`
+                }
+                cates.html(str);
+            }
+
+            $('.save').click(function () {
+                let array = new Array();
+                $('input[name="inputcate"]:checked').each(function () {
+                    array.push($(this).val());
+                });
+                let str = array.join(",");
+                $.ajax({
+                    url:'/api/copyCate',
+                    type: 'POST',
+                    data: {str: str},
+                    success:function (data) {
+                        if (data.statu == "yes") {
+                            mdui.snackbar({
+                                message: '添加成功'
+                            });
+                        } else {
+                            mdui.alert(data.message);
+                        }
+                        setTimeout(function () {
+                            window.location.href = '/';
+                        },1000)
+                    }
+                })
+            })
+        });
+    </script>
+    <style>
+        button:focus {
+            outline: none;
+        }
+
+    </style>
+</head>
+<body>
+        <div class="card col-md-6" id="center">
+            <div class="card-block">
+                <h1 class="text-center">添加喜欢的分区</h1>
+                <div class="mdui-row-md-4">
+                    <div class="cates">
+
+                    </div>
+                </div>
+                <button class="mdui-btn mdui-btn-block mdui-color-theme-accent mdui-ripple save" style="background-color: #9c27b0">保存</button>
+            </div>
+        </div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:form="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+    <title>Title</title>
+    <link rel="stylesheet" href="css/material.min.css">
+    <script src="js/jquery-3.2.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/material.min.js"></script>
+
+    <style>
+        .nav {
+            display: inline-flex;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            jQuery.fn.center = function () {
+                this.css("position","absolute");
+                this.css("top",($(window).height() - this.height())/2);
+                this.css("left",($(window).width() - this.width())/2);
+                return this;
+            }
+            $("#center").center();
+            $('#signbtn').click(function () {
+                var array = $('#signform').serializeArray();
+                $.ajax({
+                    url:'/sign',
+                    method:'POST',
+                    data: array,
+                    success:function (data) {
+                        window.location.href = '/';
+                    }
+                });
+                return false;
+            });
+            if(localStorage.getItem('username') != '' || localStorage.getItem('username') != null) {
+                $('#username').val(localStorage.getItem('username'));
+            }
+            $('.login').click(function () {
+                let $username = $('#username');
+                let $password = $('#password');
+                let $checkUsernameLength = $('#checkUsernameLength');
+                let $checkPasswordLength = $('#checkPasswordLength');
+                if($username.val()== '') {
+                    $checkUsernameLength.text('用户名不能为空');
+                    $checkUsernameLength.fadeOut('1500');
+                    $username.focus();
+                    return false;
+                } else if($password.val() == '') {
+                    $checkPasswordLength.text('密码不能为空');
+                    $checkPasswordLength.fadeOut('1500');
+                    $password.focus();
+                    return false;
+                } else {
+                    localStorage.setItem('username', $username.val());
+                }
+            })
+            let signusername = $('#signusername');
+            let checkUsername = $('#checkUsername');
+            signusername.blur(function () {
+                $.ajax({
+                    url: '/api/checkUsername/' + signusername.val(),
+                    method: 'POST',
+                    success:function (data) {
+                        if (data.statu == 'yes') {
+                            checkUsername.text('该用户名可用');
+                            checkUsername.fadeOut('1500');
+                            $('#signbtn').removeAttr('disabled');
+
+                        } else {
+                            checkUsername.text('用户名已被占用');
+                            $('#signbtn').attr('disabled', 'disabled');
+                        }
+                    }
+                });
+            })
+        })
+    </script>
+
+</head>
+<body>
+    <div class="container text-center">
+        <div class="row">
+            <div class="card col-md-3" id="center">
+                <div class="card-header">
+                    <h2>网站智能导航</h2>
+                </div>
+                <div class="card-header">
+                <ul class="nav nav-tabs nav-tabs-material" id="mytab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#login">登录</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#sign">注册</a>
+                    </li>
+                </ul>
+                </div>
+                <div class="tab-content">
+                    <div class="tab-pane fade active show" id="login">
+                        <div class="card-block">
+                            <form th:action="@{/login}" method="post">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名:">
+                                    <span id="checkUsernameLength"></span>
+                                </div>
+                                <div class="input-group input-group-sm" style="margin-top: 2rem">
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码:">
+                                    <span id="checkPasswordLength"></span>
+                                </div>
+                                <div class="form-check" style="margin-top: 1rem; float: left">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="Remember_me" name="remember-me">
+                                        Remember Me
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-block btn-success login" style="margin-top: 2rem">登录</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="sign" role="tab">
+                        <div class="card-block">
+                            <form id="signform" th:action="@{/sign}" method="post">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="signusername" name="username" placeholder="请输入用户名:">
+                                    <span id="checkUsername"></span>
+                                </div>
+                                <div class="input-group input-group-sm" style="margin-top: 2rem">
+                                    <input type="password" class="form-control" id="signpassword" name="repassword" placeholder="请输入密码:">
+                                </div>
+                                <div class="input-group input-group-sm" style="margin-top: 2rem">
+                                    <input type="password" class="form-control" id="resignpassword" name="password" placeholder="请再次输入密码:">
+                                </div>
+                                <button id="signbtn" type="submit" class="btn btn-block btn-success" style="margin-top: 2rem">注册</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:href="http://www.w3.org/1999/xhtml" xmlns:mdui-menu="http://www.w3.org/1999/xhtml" xmlns:
+      xmlns:th="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+    <title></title>
+    <link rel="stylesheet" href="css/material.min.css" th:href="@{/css/material.min.css}">
+    <link rel="stylesheet" href="css/mdui.min.css" th:href="@{/css/mdui.min.css}">
+    <script src="js/jquery-3.2.0.min.js" th:src="@{/js/jquery-3.2.0.min.js}"></script>
+    <script src="js/mdui.js" th:src="@{/js/mdui.js}"></script>
+    <script src="js/site.js" th:src="@{/js/site.js}"></script>
+    <script src="js/jquery.historyLoad-1.1.js" th:src="@{/js/jquery.historyLoad-1.1.js}"></script>
+    <script src="js/search.js" th:src="@{/js/search.js}"></script>
+    <script>
+        $(document).ready(function () {
+            let value = $('#inputnav').val();
+            var judge = $('.navlistitem').each(function () {
+                if($(this).attr('name') == value) {
+                    $(this).trigger('click');
+                    $('.title').text($(this).text());
+                    return true;
+                } else {
+                    return;
+                }
+            });
+            if(value == undefined || value == '') {
+                $('.navlistitem').first().trigger('click');
+                $('.title').text("首页");
+            }
+
+
+        })
+    </script>
+
+    <style>
+        button:focus {
+            outline: none;
+        }
+
+        .clearfix {
+            overflow: auto;
+        }
+
+    </style>
+    <script src="js/nav.js" th:src="@{/js/nav.js}"></script>
+</head>
+<body class="mdui-appbar-with-toolbar mdui-drawer-body-left">
+<div class="mdui-appbar mdui-appbar-fixed">
+    <div class="mdui-toolbar mdui-color-theme mdui-color-white">
+        <a href="javascript:;" id="menu" class="mdui-btn mdui-btn-icon" mdui-drawer="{target: '#left-drawer'}"><i class="mdui-icon material-icons">&#xe5d2;</i></a>
+        <a href="javascript:;" class="mdui-typo-headline">网站智能导航系统</a>
+        <a href="javascript:;" class="mdui-typo-title title">首页</a>
+        <div class="mdui-textfield mdui-textfield-expandable" style="max-width: 50%">
+            <button class="mdui-textfield-icon mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">&#xe8b6;</i></button>
+            <input class="mdui-textfield-input searchInput" type="text" placeholder="Search"/>
+            <button class="mdui-textfield-close mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">&#xe5cd;</i></button>
+        </div>
+        <div class="mdui-toolbar-spacer"></div>
+        <a href="javascript:;" class="mdui-tyoi-title" th:inline="text"> 欢迎 [[${#httpServletRequest.remoteUser}]]！</a>
+        <span class="mdui-btn mdui-btn-icon mdui-ripple mdui-ripple-white" mdui-dialog="{target: '#dialog-docs-theme'}"><i class="mdui-icon material-icons">&#xe3b7;</i></span>
+        <a href="javascript:;" class="mdui-btn mdui-btn-icon" mdui-menu="{target: '#cardmenu'}"><i class="mdui-icon material-icons">&#xe5d4;</i></a>
+        <ul class="mdui-menu" id="cardmenu">
+            <li class="mdui-menu-item">
+                <a href="/admin" class="mdui-ripple">
+                    <i class="mdui-menu-item-icon mdui-icon material-icons">near_me</i>进入后台
+                </a>
+            </li>
+            <li class="mdui-divider"></li>
+            <li class="mdui-menu-item">
+                <a href="/logout" th:href="@{/logout}" class="mdui-ripple">
+                    <i class="mdui-menu-item-icon mdui-icon material-icons">lock_open</i>退出登录
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="mdui-drawer" id="left-drawer">
+    <ul class="mdui-list navlist">
+        <li class="mdui-list-item mdui-ripple navlistitem" name="commonnav">常用导航</li>
+        <li class="mdui-list-item mdui-ripple navlistitem" th:each="userCate,cateStat : ${userCate}" th:id="${userCate.id}" th:name="${userCate.catename}" th:text="${userCate.description}">
+        </li>
+        <div class="mdui-divider"></div>
+        <div class="mdui-list-item mdui-ripple navlistitem" name="setting">设置</div>
+    </ul>
+</div>
+<div class="mdui-container">
+</div>
+<div class="addDialog"></div>
+<div class="editDialog"></div>
+<div class="deleteDialog"></div>
+<div class="moveDialog"></div>
+<div class="mdui-fab-wrapper" id="addFab" mdui-fab="{trigger: 'hover'}">
+    <button class="mdui-fab mdui-ripple mdui-color-theme-accent" data-toggle="tooltip" data-placement="right" title="添加分类" id="addUserCate">
+        <!-- 默认显示的图标 -->
+        <i class="mdui-icon material-icons">&#xe145;</i>
+
+        <!-- 在拨号菜单开始打开时，平滑切换到该图标，若不需要切换图标，则可以省略该元素 -->
+        <i class="mdui-icon mdui-fab-opened material-icons">&#xe254;</i>
+    </button>
+    <div class="mdui-fab-dial">
+        <button class="mdui-fab mdui-fab-mini mdui-ripple mdui-color-pink" data-toggle="tooltip" data-placement="right" title="添加网站" id="addUserSite"><i class="mdui-icon material-icons">add</i></button>
+    </div>
+</div>
+<!-- 隐藏域 -->
+<input type="hidden" th:value="${catename}" id="inputnav">
+<div class="mdui-dialog" id="dialog-docs-theme">
+    <div class="mdui-dialog-title">设置文档主题</div>
+    <div class="mdui-dialog-content">
+
+        <p class="mdui-typo-title">主题色</p>
+        <div class="mdui-row-xs-1 mdui-row-sm-2 mdui-row-md-3">
+            <div class="mdui-col">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-layout" value="" checked/>
+                    <i class="mdui-radio-icon"></i>
+                    Light
+                </label>
+            </div>
+            <div class="mdui-col">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-layout" value="dark" />
+                    <i class="mdui-radio-icon"></i>
+                    Dark
+                </label>
+            </div>
+        </div>
+
+        <p class="mdui-typo-title mdui-text-color-theme">主色</p>
+        <form class="mdui-row-xs-1 mdui-row-sm-2 mdui-row-md-3">
+            <div class="mdui-col mdui-text-color-amber">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="amber" />
+                    <i class="mdui-radio-icon"></i>
+                    Amber
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-blue">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="blue" />
+                    <i class="mdui-radio-icon"></i>
+                    Blue
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-blue-grey">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="blue-grey" />
+                    <i class="mdui-radio-icon"></i>
+                    Blue Grey
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-brown">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="brown" />
+                    <i class="mdui-radio-icon"></i>
+                    Brown
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-cyan">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="cyan" />
+                    <i class="mdui-radio-icon"></i>
+                    Cyan
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-deep-orange">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="deep-orange" />
+                    <i class="mdui-radio-icon"></i>
+                    Deep Orange
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-deep-purple">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="deep-purple" />
+                    <i class="mdui-radio-icon"></i>
+                    Deep Purple
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-green">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="green" />
+                    <i class="mdui-radio-icon"></i>
+                    Green
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-grey">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="grey" />
+                    <i class="mdui-radio-icon"></i>
+                    Grey
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-indigo">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="indigo" checked/>
+                    <i class="mdui-radio-icon"></i>
+                    Indigo
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-light-blue">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="light-blue" />
+                    <i class="mdui-radio-icon"></i>
+                    Light Blue
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-light-green">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="light-green" />
+                    <i class="mdui-radio-icon"></i>
+                    Light Green
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-lime">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="lime" />
+                    <i class="mdui-radio-icon"></i>
+                    Lime
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-orange">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="orange" />
+                    <i class="mdui-radio-icon"></i>
+                    Orange
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-pink">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="pink" />
+                    <i class="mdui-radio-icon"></i>
+                    Pink
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-purple">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="purple" />
+                    <i class="mdui-radio-icon"></i>
+                    Purple
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-red">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="red" />
+                    <i class="mdui-radio-icon"></i>
+                    Red
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-teal">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="teal" />
+                    <i class="mdui-radio-icon"></i>
+                    Teal
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-yellow">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="yellow" />
+                    <i class="mdui-radio-icon"></i>
+                    Yellow
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-black">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-primary" value="white" />
+                    <i class="mdui-radio-icon"></i>
+                    White
+                </label>
+            </div>
+        </form>
+
+        <p class="mdui-typo-title mdui-text-color-theme-accent">强调色</p>
+        <form class="mdui-row-xs-1 mdui-row-sm-2 mdui-row-md-3">
+            <div class="mdui-col mdui-text-color-amber">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="amber" />
+                    <i class="mdui-radio-icon"></i>
+                    Amber
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-blue">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="blue" />
+                    <i class="mdui-radio-icon"></i>
+                    Blue
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-cyan">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="cyan" />
+                    <i class="mdui-radio-icon"></i>
+                    Cyan
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-deep-orange">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="deep-orange" />
+                    <i class="mdui-radio-icon"></i>
+                    Deep Orange
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-deep-purple">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="deep-purple" />
+                    <i class="mdui-radio-icon"></i>
+                    Deep Purple
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-green">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="green" />
+                    <i class="mdui-radio-icon"></i>
+                    Green
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-indigo">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="indigo" />
+                    <i class="mdui-radio-icon"></i>
+                    Indigo
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-light-blue">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="light-blue" />
+                    <i class="mdui-radio-icon"></i>
+                    Light Blue
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-light-green">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="light-green" />
+                    <i class="mdui-radio-icon"></i>
+                    Light Green
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-lime">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="lime" />
+                    <i class="mdui-radio-icon"></i>
+                    Lime
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-orange">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="orange" />
+                    <i class="mdui-radio-icon"></i>
+                    Orange
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-pink">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="pink" checked/>
+                    <i class="mdui-radio-icon"></i>
+                    Pink
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-purple">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="purple" />
+                    <i class="mdui-radio-icon"></i>
+                    Purple
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-red">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="red" />
+                    <i class="mdui-radio-icon"></i>
+                    Red
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-teal">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="teal" />
+                    <i class="mdui-radio-icon"></i>
+                    Teal
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-yellow">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="yellow" />
+                    <i class="mdui-radio-icon"></i>
+                    Yellow
+                </label>
+            </div>
+            <div class="mdui-col mdui-text-color-black">
+                <label class="mdui-radio mdui-m-b-1">
+                    <input type="radio" name="doc-theme-accent" value="White" />
+                    <i class="mdui-radio-icon"></i>
+                    White
+                </label>
+            </div>
+        </form>
+
+    </div>
+    <div class="mdui-divider"></div>
+    <div class="mdui-dialog-actions">
+        <button class="mdui-btn mdui-ripple mdui-float-left" mdui-dialog-cancel>恢复默认主题</button>
+        <button class="mdui-btn mdui-ripple" mdui-dialog-confirm>ok</button>
+    </div>
+</div>
+<script>
+    $('body').historyLoad('.mdui-container','.navlist');
+
+    $('#addUserCate').click(function () {
+        let addDialog = $('.addDialog');
+        addDialog.html("");
+        let str = '';
+        str += `<div class="mdui-dialog" id="addUserCateDialog">
+                            <div class="mdui-dialog-title">添加用户分类</div>
+                            <div class="mdui-dialog-content">
+                               <div class="mdui-textfield">
+                                   <label class="mdui-textfield-label">catename</label>
+                                   <input id="addcatename" placeholder="分类名" class="mdui-textfield-input" type="text" required/>
+                                   <span class="mdui-textfield-error">分类名不能为空</span>
+                                </div>
+                                <div class="mdui-textfield">
+                                   <label class="mdui-textfield-label">description</label>
+                                   <input id="adddescription" placeholder="描述" class="mdui-textfield-input" type="text" required/>
+                                   <span class="mdui-textfield-error">描述不能为空</span>
+                                </div>
+                                <h4>启用?</h4>
+                                <form>
+                                <label class="mdui-radio">
+                                    <input type="radio" name="addenable" value="true" checked/>
+                                    <i class="mdui-radio-icon"></i>
+                                    启用
+                                        </label>
+                                    <label class="mdui-radio">
+                                    <input type="radio" name="addenable" value="false"/>
+                                    <i class="mdui-radio-icon"></i>
+                                    禁用
+                                </label>
+                                </form>
+                            </div>
+                              <div class="mdui-dialog-actions">
+                                <button class="mdui-btn mdui-ripple" mdui-dialog-cancel>取消</button>
+                                <button class="mdui-btn mdui-ripple" mdui-dialog-confirm>确定</button>
+                              </div>
+                            </div>`
+        addDialog.html(str);
+        setTimeout(function () {
+            var inst = new mdui.Dialog('#addUserCateDialog');
+            inst.open();
+        },100);
+        return false;
+    });
+    $(document).on('confirm.mdui.dialog', '#addUserCateDialog', function () {
+        let catename = $('#addcatename').val();
+        let description = $('#adddescription').val();
+        let hits = $('#addhits').val();
+        let enable = $('input[name="addenable"]:checked').val();
+        let userCate = {
+            catename: catename,
+            description: description,
+            enable: enable,
+        };
+        $.ajax({
+            url: '/api/cate',
+            data: userCate,
+            type: 'POST',
+            success: function (data) {
+                if (data.statu == "yes") {
+                    mdui.snackbar({
+                        message: '添加成功'
+                    });
+                } else {
+                    mdui.alert(data.message);
+                }
+            }
+        });
+    });
+    $('#addUserSite').click(function () {
+        let catename = $('.mdui-list-item-active').text();
+        let addDialog = $('.addDialog');
+        addDialog.html("");
+        let str = '';
+        str += `<div class="mdui-dialog" id="addUserSiteDialog">
+                            <div class="mdui-dialog-title">添加用户网站</div>
+                            <div class="mdui-dialog-content">
+                               <div class="mdui-textfield">
+                                   <label class="mdui-textfield-label">catename</label>
+                                   <input id="addcatename" placeholder="分类名" class="mdui-textfield-input" type="text" value="${catename}" required/>
+                                   <span class="mdui-textfield-error">分类名不能为空</span>
+                                </div>
+                                <div class="mdui-textfield">
+                                   <label class="mdui-textfield-label">siteurl</label>
+                                   <input id="addsiteurl" placeholder="网址链接" class="mdui-textfield-input" type="text" required/>
+                                   <span class="mdui-textfield-error">描述不能为空</span>
+                                </div>
+                                <div class="mdui-textfield">
+                                   <label class="mdui-textfield-label">title</label>
+                                   <input id="addtitle" placeholder="标题" class="mdui-textfield-input" type="text"/>
+                                </div>
+                                <div class="mdui-textfield">
+                                   <label class="mdui-textfield-label">comment</label>
+                                   <input id="addcomment" placeholder="描述" class="mdui-textfield-input" type="text"/>
+                                </div>
+                                <h4>启用?</h4>
+                                <form>
+                                <label class="mdui-radio">
+                                    <input type="radio" name="addenable" value="true" checked/>
+                                    <i class="mdui-radio-icon"></i>
+                                    启用
+                                        </label>
+                                    <label class="mdui-radio">
+                                    <input type="radio" name="addenable" value="false"/>
+                                    <i class="mdui-radio-icon"></i>
+                                    禁用
+                                </label>
+                                </form>
+                            </div>
+                              <div class="mdui-dialog-actions">
+                                <button class="mdui-btn mdui-ripple" mdui-dialog-cancel>取消</button>
+                                <button class="mdui-btn mdui-ripple" mdui-dialog-confirm>确定</button>
+                              </div>
+                            </div>`
+        addDialog.html(str);
+        setTimeout(function () {
+            var inst = new mdui.Dialog('#addUserSiteDialog');
+            inst.open();
+        },100);
+        return false;
+    })
+
+    $(document).on('confirm.mdui.dialog', '#addUserSiteDialog', function () {
+        let catename = $('#addcatename').val();
+        let siteurl = $('#addsiteurl').val();
+        let title = $('#addtitle').val();
+        let comment = $('#addcomment').val();
+        let enable = $('input[name="addenable"]:checked').val();
+        let userSite = {
+            catename: catename,
+            siteurl: siteurl,
+            title: title,
+            comment: comment,
+            enable: enable,
+        };
+        $.ajax({
+            url: '/api/site/addSite',
+            data: userSite,
+            type: 'POST',
+            success: function (data) {
+                if (data.statu == "yes") {
+                    mdui.snackbar({
+                        message: '添加成功'
+                    });
+                } else {
+                    mdui.alert(data.message);
+                }
+            }
+        });
+    });
+
+</script>
+<script>
+    (function () {
+        var i, len;
+        var $body = $('body');
+
+        var classStr = $body.attr('class');
+        var classs = classStr.split(' ');
+        if(localStorage.getItem('primary')) {
+            for (i = 0, len = classs.length; i < len; i++) {
+                if (classs[i].indexOf('mdui-theme-primary-') === 0) {
+                    $body.removeClass(classs[i])
+                }
+            }
+            $body.addClass('mdui-theme-primary-' + localStorage.getItem('primary'));
+            $('input[name="doc-theme-primary"][value="' + localStorage.getItem('primary') + '"]').prop('checked', true);
+        }
+
+        if(localStorage.getItem('accent')) {
+            for (i = 0, len = classs.length; i < len; i++) {
+                if (classs[i].indexOf('mdui-theme-accent-') === 0) {
+                    $body.removeClass(classs[i]);
+                }
+            }
+            $body.addClass('mdui-theme-accent-' + localStorage.getItem('accent'));
+            $('input[name="doc-theme-accent"][value="' + localStorage.getItem('accent') + '"]').prop('checked', true);
+        }
+
+        if (localStorage.getItem('layout')) {
+            for (i = 0, len = classs.length; i < len; i++) {
+                if (classs[i].indexOf('mdui-theme-layout-') === 0) {
+                    $body.removeClass(classs[i]);
+                }
+            }
+            if (localStorage.getItem('layout') !== '') {
+                $body.addClass('mdui-theme-layout-' + localStorage.getItem('layout'));
+            }
+            $('input[name="doc-theme-layout"][value="' + localStorage.getItem('layout') + '"]').prop('checked', true);
+        }
+
+
+        var DEFAULT_PRIMARY = 'white';
+        var DEFAULT_ACCENT = 'white';
+        var DEFAULT_LAYOUT = 'white';
+
+        var setDocsTheme = function (theme) {
+            if (typeof theme.primary === 'undefined') {
+                theme.primary = false;
+            }
+            if (typeof theme.accent === 'undefined') {
+                theme.accent = false;
+            }
+            if (typeof theme.layout === 'undefined') {
+                theme.layout = false;
+            }
+
+            var i, len;
+            var $body = $('body');
+
+            var classStr = $body.attr('class');
+            var classs = classStr.split(' ');
+
+            // 设置主色
+            if (theme.primary !== false) {
+                for (i = 0, len = classs.length; i < len; i++) {
+                    if (classs[i].indexOf('mdui-theme-primary-') === 0) {
+                        $body.removeClass(classs[i])
+                    }
+                }
+                $body.addClass('mdui-theme-primary-' + theme.primary);
+                localStorage.setItem('primary',theme.primary);
+                $('input[name="doc-theme-primary"][value="' + theme.primary + '"]').prop('checked', true);
+            }
+
+            // 设置强调色
+            if (theme.accent !== false) {
+                for (i = 0, len = classs.length; i < len; i++) {
+                    if (classs[i].indexOf('mdui-theme-accent-') === 0) {
+                        $body.removeClass(classs[i]);
+                    }
+                }
+                $body.addClass('mdui-theme-accent-' + theme.accent);
+                localStorage.setItem('accent', theme.accent);
+                $('input[name="doc-theme-accent"][value="' + theme.accent + '"]').prop('checked', true);
+            }
+
+            // 设置主题色
+            if (theme.layout !== false) {
+                for (i = 0, len = classs.length; i < len; i++) {
+                    if (classs[i].indexOf('mdui-theme-layout-') === 0) {
+                        $body.removeClass(classs[i]);
+                    }
+                }
+                if (theme.layout !== '') {
+                    $body.addClass('mdui-theme-layout-' + theme.layout);
+                }
+                localStorage.setItem('layout', theme.layout);
+                $('input[name="doc-theme-layout"][value="' + theme.layout + '"]').prop('checked', true);
+            }
+        };
+
+        // 切换主色
+        $(document).on('change', 'input[name="doc-theme-primary"]', function () {
+            setDocsTheme({
+                primary: $(this).val()
+            });
+        });
+
+        // 切换强调色
+        $(document).on('change', 'input[name="doc-theme-accent"]', function () {
+            setDocsTheme({
+                accent: $(this).val()
+            });
+        });
+
+        // 切换主题色
+        $(document).on('change', 'input[name="doc-theme-layout"]', function () {
+            setDocsTheme({
+                layout: $(this).val()
+            });
+        });
+
+        // 恢复默认主题
+        $(document).on('cancel.mdui.dialog', '#dialog-docs-theme', function () {
+            setDocsTheme({
+                primary: DEFAULT_PRIMARY,
+                accent: DEFAULT_ACCENT,
+                layout: DEFAULT_LAYOUT
+            });
+        });
+    })();
+</script>
+<script>
+    $(function () {
+        $(document).on('click', 'input[name="enableCheckBox"]', function () {
+            let catename = $(this).attr("data");
+            let check = 0;
+            if($(this).attr("isChecked") != "yes") {
+                $(this).attr("isChecked","yes");
+                check = 1;
+            } else {
+                $(this).attr("isChecked","no");
+                check = 0;
+            }
+            let userCate = {
+                catename: catename,
+                enable: check,
+            }
+            $.ajax({
+                url: '/api/cate/changeenable',
+                data: userCate,
+                method: 'POST',
+                success:function (data) {
+                    if(data.statu == 'yes') {
+                        mdui.snackbar({
+                            message: '修改成功'
+                        });
+                        check = 0;
+                        setTimeout(function () {
+                            location.reload();
+                        },100)
+
+                    }
+                }
+            })
+        })
+    })
+</script>
+<script>
+    $(function () {
+        $(document).on('click','.editUserCate', function () {
+
+            $('.editDialog').html('');
+            let catename = $(this).attr('data-catename');
+
+            $.ajax({
+                url:'/api/cate/' + catename,
+                method:'GET',
+                async: 'false',
+                success:function (data) {
+                    editDialog(data);
+                }
+            });
+            setTimeout(function () {
+                let inst = new mdui.Dialog('#editUserCateDialog');
+                inst.open();
+            },1000);
+            return false;
+
+        });
+        function editDialog(data) {
+            let editDialog = $('.editDialog');
+            editDialog.html('');
+            let userCate = data.userCate;
+            let radioEnabled = '';
+            if(true == userCate.enable) {
+                radioEnabled+= `<div class="mdui-col"><label class="mdui-radio">
+                    <input type="radio" name="editEnable" value="true" checked/>
+                    <i class="mdui-radio-icon"></i>
+                    Enable
+                        </label></div>
+                    <div class="mdui-col">
+                    <label class="mdui-radio">
+                    <input type="radio" name="editEnable" value="false"/>
+                    <i class="mdui-radio-icon"></i>
+                    disabled
+                </label></div>`
+            } else {
+                radioEnabled+= `<div class="mdui-col"><label class="mdui-radio">
+                    <input type="radio" name="editEnable" value="true"/>
+                    <i class="mdui-radio-icon"></i>
+                    Enable
+                        </label></div>
+                    <div class="mdui-col"><label class="mdui-radio">
+                    <input type="radio" name="editEnable" value="false" checked/>
+                    <i class="mdui-radio-icon"></i>
+                    disabled
+                </label></div>`
+            }
+
+            let dialoghtml = '';
+            dialoghtml += `<div class="mdui-dialog" id="editUserCateDialog">
+        <input id="editid" type="hidden" class="edit" value="${userCate.id}">
+        <div class="mdui-dialog-title">修改用户分类</div>
+        <div class="mdui-dialog-content">
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">catename</label>
+                <input id="editcatename" class="mdui-textfield-input" type="text" value="${userCate.catename}"/>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">description</label>
+                <input id="editdescription" class="mdui-textfield-input" type="text" value="${userCate.description}"/>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">username</label>
+                <input id="editusername" class="mdui-textfield-input" type="text" value="${userCate.username}" disabled/>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label">hits</label>
+                <input id="edithits" placeholder="点击量" class="mdui-textfield-input" type="number" value="${userCate.hits}"/>
+            </div>
+            <h4>Enable?</h4>
+            <div class="mdui-row-md-4">
+            <form>
+            ${radioEnabled}
+            </form>
+            </div>
+        </div>
+        <div class="mdui-dialog-actions">
+            <button class="mdui-btn mdui-ripple" mdui-dialog-cancel>取消</button>
+            <button class="mdui-btn mdui-ripple" mdui-dialog-confirm>保存</button>
+        </div>
+    </div></form>`;
+            editDialog.append(dialoghtml);
+            return false;
+        };
+
+        $(document).on('confirm.mdui.dialog', '#editUserCateDialog', function () {
+            let id = $('#editid').val();
+            let catename = $('#editcatename').val();
+            let description = $('#editdescription').val();
+            let username = $('#editusername').val();
+            let hits = $('#edithits').val();
+            let enable = $('input[name="editEnable"]:checked').val();
+            let url = '/api/admin/userCate/' + id;
+            let userCate = {
+                catename: catename,
+                description: description,
+                username: username,
+                hits: hits,
+                enable: enable,
+            };
+            $.ajax({
+                url: '/api/cate/' + id,
+                data: userCate,
+                type:'PUT',
+                success: function (data) {
+                    if (data.statu == "yes") {
+                        mdui.snackbar({
+                            message: '修改成功'
+                        });
+                    } else {
+                        mdui.alert(data.message);
+                    }
+                }
+
+            });
+        });
+
+        $(document).on('click', '.deleteUserCate', function () {
+            let id = $(this).attr('data');
+            let deleteDialog = $('.deleteDialog');
+            deleteDialog.html('');
+            let deleteDialoghtml = '';
+            deleteDialoghtml += `<div class="mdui-dialog" id="deleteUserCateDialog">
+        <input id="deleteid" type="hidden" value="${id}">
+                            <div class="mdui-dialog-title">确定删除?</div>
+                            <div class="mdui-dialog-content">
+                               删除后无法恢复
+                            </div>
+                              <div class="mdui-dialog-actions">
+                                <button class="mdui-btn mdui-ripple" mdui-dialog-cancel>取消</button>
+                                <button class="mdui-btn mdui-ripple" mdui-dialog-confirm>确定</button>
+                              </div>
+                            </div>`;
+            deleteDialog.append(deleteDialoghtml);
+            let inst = new mdui.Dialog('#deleteUserCateDialog');
+            inst.open();
+            return false;
+        });
+        $(document).on('confirm.mdui.dialog','#deleteUserCateDialog',function () {
+            let id = $('#deleteid').val();
+            $.ajax({
+                url: '/api/cate/' + id,
+                type: 'DELETE',
+                success:function (data) {
+                    if (data.statu =='yes'){
+                        mdui.snackbar({
+                            message: '删除成功'
+                        });
+                    } else {
+                        mdui.alert(data.message);
+                    }
+                }
+            });
+        });
+    })
+</script>
+<script>
+    $(document).on('click', '.addRecordToUser', function () {
+        let id = $(this).attr('data');
+        let $this = $(this);
+        $.ajax({
+            url: '/api/site/addRecordToUser',
+            method: 'POST',
+            data: {
+                id: id,
+            },
+            success:function (data) {
+                if(data.statu == 'yes') {
+                    mdui.snackbar({
+                        message: '添加成功'
+                    });
+                    $this.text("已添加")
+                    $this.attr("disabled","disabled");
+                } else {
+                    mdui.snackbar({
+                        message: data.message
+                    });
+                }
+            }
+        });
+        return false;
+    })
+</script>
+</body>
+</html>
